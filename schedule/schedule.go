@@ -232,7 +232,7 @@ func splitBR(s *goquery.Selection) []string {
 func splitTime(s string) string {
 	s = clean(s)
 	if i := strings.Index(s, "-"); i >= 0 {
-		return strings.TrimSpace(s[:i+1]) + "\n" + strings.TrimSpace(s[i+1:])
+		return strings.TrimSpace(s[:i]) + "\n" + strings.TrimSpace(s[i+1:])
 	}
 	return s
 }
