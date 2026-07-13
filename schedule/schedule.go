@@ -139,7 +139,7 @@ func ParseDays(doc *goquery.Document) []Day {
 		box := tr.Find("div.cell").First()
 		divs := box.ChildrenFiltered("div")
 		days[cur].Cells = append(days[cur].Cells, Cell{
-			Time:     clean(hour.Text()),
+			Time:     splitTime(hour.Text()),
 			Subject:  clean(divs.Eq(0).Text()),
 			Teachers: splitBR(divs.Eq(1)),
 			Rooms:    splitBR(divs.Eq(2)),
@@ -225,4 +225,14 @@ func splitBR(s *goquery.Selection) []string {
 		}
 	}
 	return out
+}
+
+// splitTime приводит "08:00-11:20" к формату оригинала "08:00-\n11:20":
+// фронт делает time.replace('- ', '') и переносом строки разбивает время на две строки.
+func splitTime(s string) string {
+	s = clean(s)
+	if i := strings.Index(s, "-"); i >= 0 {
+		return strings.TrimSpace(s[:i+1]) + "\n" + strings.TrimSpace(s[i+1:])
+	}
+	return s
 }
