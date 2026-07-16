@@ -14,6 +14,12 @@ import (
 	"github.com/chazari-x/hmtpk_parser/v2/storage"
 )
 
+// TODO: переделать кэш на метку версии расписания.
+// На индексной странице есть строка «Расписание сформировано: 15.06.2026 13:35» —
+// она меняется при каждом переформировании. План: кэшировать метку коротко (~5 мин),
+// а страницы групп класть под ключ «omgmu:days:<метка>:<группа>» с длинным TTL.
+// Тогда изменения подхватываются в течение 5 минут, а неизменное расписание
+// не перезапрашивается вовсе (сейчас все 137 групп перечитываются каждые 30 минут впустую).
 const (
 	daysTTL = 30 * time.Minute
 	optsTTL = 6 * time.Hour
@@ -82,7 +88,9 @@ func (c *Controller) GetSchedule(ctx context.Context, name, date string) ([]mode
 		num := 0
 		for _, cell := range d.Cells {
 			num++
-			lessons := schedule.ExpandCell(cell, num, name)
+			// Group намеренно пустой: в расписании группы код группы не дублируется —
+			// он и так выбран в чипе (в оригинале колонки «Группа» в таблице группы нет).
+			lessons := schedule.ExpandCell(cell, num, "")
 			for i := range lessons {
 				lessons[i].Teacher = staff.Full(names, lessons[i].Teacher)
 			}

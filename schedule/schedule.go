@@ -52,6 +52,7 @@ var (
 	spaceRe = regexp.MustCompile(`\s+`)
 	wdIndex = map[string]int{"Пн": 1, "Вт": 2, "Ср": 3, "Чт": 4, "Пт": 5, "Сб": 6, "Вс": 7}
 
+
 	weekdayRU = map[time.Weekday]string{
 		time.Monday: "Понедельник", time.Tuesday: "Вторник", time.Wednesday: "Среда",
 		time.Thursday: "Четверг", time.Friday: "Пятница", time.Saturday: "Суббота", time.Sunday: "Воскресенье",
@@ -227,7 +228,8 @@ func splitBR(s *goquery.Selection) []string {
 	return out
 }
 
-// splitTime приводит "08:00-11:20" к формату оригинала "08:00\n11:20".
+// splitTime приводит "08:00-11:20" к формату оригинала "08:00\n11:20":
+// на сайте ХМТПК время лежало в ячейке двумя строками, фронт рисует его как есть.
 func splitTime(s string) string {
 	s = clean(s)
 	if i := strings.Index(s, "-"); i >= 0 {
