@@ -11,6 +11,7 @@ import (
 	"github.com/chazari-x/hmtpk_parser/v2/model"
 	"github.com/chazari-x/hmtpk_parser/v2/schedule"
 	"github.com/chazari-x/hmtpk_parser/v2/schedule/group"
+	"github.com/chazari-x/hmtpk_parser/v2/schedule/staff"
 	"github.com/chazari-x/hmtpk_parser/v2/schedule/teacher"
 	"github.com/chazari-x/hmtpk_parser/v2/storage"
 )
@@ -27,12 +28,13 @@ type Controller struct {
 }
 
 func NewController(client *redis.Client, logger *logrus.Logger) *Controller {
-	g := group.NewController(client, logger)
+	s := staff.NewController(client, logger)
+	g := group.NewController(s, client, logger)
 	return &Controller{
 		r:        &storage.Redis{Redis: client},
 		log:      logger,
 		group:    g,
-		teacher:  teacher.NewController(g, client, logger),
+		teacher:  teacher.NewController(g, s, client, logger),
 		announce: announce.NewAnnounce(logger),
 	}
 }

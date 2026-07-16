@@ -13,6 +13,7 @@ import (
 	"github.com/chazari-x/hmtpk_parser/v2/model"
 	"github.com/chazari-x/hmtpk_parser/v2/schedule"
 	"github.com/chazari-x/hmtpk_parser/v2/schedule/group"
+	"github.com/chazari-x/hmtpk_parser/v2/schedule/staff"
 	"github.com/chazari-x/hmtpk_parser/v2/storage"
 )
 
@@ -24,14 +25,17 @@ type Controller struct {
 	r      *storage.Redis
 	log    *logrus.Logger
 	groups *group.Controller
+	staff  *staff.Controller
 }
 
 // NewController принимает готовый group.Controller, чтобы переиспользовать его кэш групп.
-func NewController(groups *group.Controller, client *redis.Client, logger *logrus.Logger) *Controller {
-	return &Controller{r: &storage.Redis{Redis: client}, log: logger, groups: groups}
+func NewController(groups *group.Controller, staffCtrl *staff.Controller, client *redis.Client, logger *logrus.Logger) *Controller {
+	return &Controller{r: &storage.Redis{Redis: client}, log: logger, groups: groups, staff: staffCtrl}
 }
 
 // GetOptions собирает список преподавателей из всех групп.
+// Value — сокращение из таблицы расписания (стабильный ключ, по нему идёт отбор пар),
+// Label — полное ФИО из педсостава (фронт сам сократит его для чипа) — как в оригинале.
 func (c *Controller) GetOptions(ctx context.Context) ([]model.Option, error) {
 	const key = "omgmu:options:teachers"
 	var opts []model.Option
@@ -62,17 +66,20 @@ func (c *Controller) GetOptions(ctx context.Context) ([]model.Option, error) {
 		}
 	}
 
+	names := c.staff.Map(ctx)
 	opts = make([]model.Option, 0, len(set))
 	for t := range set {
-		opts = append(opts, model.Option{Label: t, Value: t})
+		opts = append(opts, model.Option{Label: staff.Full(names, t), Value: t})
 	}
-	sort.Slice(opts, func(i, j int) bool { return opts[i].Value < opts[j].Value })
+	sort.Slice(opts, func(i, j int) bool { return opts[i].Label < opts[j].Label })
 	_ = c.r.Set(ctx, key, opts, optsTTL)
 	return opts, nil
 }
 
 // GetSchedule собирает расписание преподавателя на неделю, содержащую date (ровно 7 дней Пн..Вс),
 // проходя по всем группам и отбирая пары, где встречается этот преподаватель.
+// Lesson.Teacher намеренно не заполняется — в оригинале в расписании преподавателя
+// карточка показывает только группу (имя и так в чипе).
 func (c *Controller) GetSchedule(ctx context.Context, teacher, date string) ([]model.Schedule, error) {
 	groups, err := c.groups.GetOptions(ctx)
 	if err != nil {
@@ -100,14 +107,14 @@ func (c *Controller) GetSchedule(ctx context.Context, teacher, date string) ([]m
 					raw[d.Date] = append(raw[d.Date], model.Lesson{
 						Time: cell.Time, Name: cell.Subject,
 						Room: schedule.At(cell.Rooms, k), Group: g.Value,
-						Subgroup: sub, Teacher: teacher,
+						Subgroup: sub,
 					})
 				}
 			}
 		}
 	}
 
-	// Нумеруем пары внутри дня по времени (строки "HH:MM-..." сравнимы лексикографически).
+	// Нумеруем пары внутри дня по времени (строки "HH:MM..." сравнимы лексикографически).
 	byDay := make(map[string][]model.Lesson, len(raw))
 	for date, lessons := range raw {
 		sort.SliceStable(lessons, func(i, j int) bool { return lessons[i].Time < lessons[j].Time })

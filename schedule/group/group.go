@@ -10,6 +10,7 @@ import (
 	"github.com/chazari-x/hmtpk_parser/v2/errors"
 	"github.com/chazari-x/hmtpk_parser/v2/model"
 	"github.com/chazari-x/hmtpk_parser/v2/schedule"
+	"github.com/chazari-x/hmtpk_parser/v2/schedule/staff"
 	"github.com/chazari-x/hmtpk_parser/v2/storage"
 )
 
@@ -20,12 +21,13 @@ const (
 
 // Controller — источник расписания по группам.
 type Controller struct {
-	r   *storage.Redis
-	log *logrus.Logger
+	r     *storage.Redis
+	log   *logrus.Logger
+	staff *staff.Controller
 }
 
-func NewController(client *redis.Client, logger *logrus.Logger) *Controller {
-	return &Controller{r: &storage.Redis{Redis: client}, log: logger}
+func NewController(staffCtrl *staff.Controller, client *redis.Client, logger *logrus.Logger) *Controller {
+	return &Controller{r: &storage.Redis{Redis: client}, log: logger, staff: staffCtrl}
 }
 
 // GetOptions возвращает список групп с индексной страницы.
@@ -67,18 +69,24 @@ func (c *Controller) Days(ctx context.Context, name string) ([]schedule.Day, err
 }
 
 // GetSchedule возвращает расписание группы на неделю, содержащую date (ровно 7 дней Пн..Вс).
+// Преподаватели разворачиваются в полные ФИО — как в оригинале (фронт сокращает их сам).
 func (c *Controller) GetSchedule(ctx context.Context, name, date string) ([]model.Schedule, error) {
 	days, err := c.Days(ctx, name)
 	if err != nil {
 		return nil, err
 	}
+	names := c.staff.Map(ctx)
 
 	byDay := make(map[string][]model.Lesson)
 	for _, d := range days {
 		num := 0
 		for _, cell := range d.Cells {
 			num++
-			byDay[d.Date] = append(byDay[d.Date], schedule.ExpandCell(cell, num, name)...)
+			lessons := schedule.ExpandCell(cell, num, name)
+			for i := range lessons {
+				lessons[i].Teacher = staff.Full(names, lessons[i].Teacher)
+			}
+			byDay[d.Date] = append(byDay[d.Date], lessons...)
 		}
 	}
 	return schedule.Assemble(date, byDay, schedule.GroupURL(name)), nil

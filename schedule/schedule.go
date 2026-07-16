@@ -227,8 +227,7 @@ func splitBR(s *goquery.Selection) []string {
 	return out
 }
 
-// splitTime приводит "08:00-11:20" к формату оригинала "08:00-\n11:20":
-// фронт делает time.replace('- ', '') и переносом строки разбивает время на две строки.
+// splitTime приводит "08:00-11:20" к формату оригинала "08:00\n11:20".
 func splitTime(s string) string {
 	s = clean(s)
 	if i := strings.Index(s, "-"); i >= 0 {
