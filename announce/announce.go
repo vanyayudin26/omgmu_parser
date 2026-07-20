@@ -5,7 +5,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	"github.com/chazari-x/hmtpk_parser/v2/model"
+	"github.com/vanyayudin26/omgmu_parser/model"
 )
 
 // Announce — блок объявлений.

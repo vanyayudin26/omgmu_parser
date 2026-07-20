@@ -15,7 +15,7 @@ import (
 
 	"github.com/sirupsen/logrus"
 
-	hmtpk "github.com/chazari-x/hmtpk_parser/v2"
+	hmtpk "github.com/vanyayudin26/omgmu_parser"
 )
 
 func main() {

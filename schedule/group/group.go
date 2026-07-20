@@ -7,11 +7,11 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
 
-	"github.com/chazari-x/hmtpk_parser/v2/errors"
-	"github.com/chazari-x/hmtpk_parser/v2/model"
-	"github.com/chazari-x/hmtpk_parser/v2/schedule"
-	"github.com/chazari-x/hmtpk_parser/v2/schedule/staff"
-	"github.com/chazari-x/hmtpk_parser/v2/storage"
+	"github.com/vanyayudin26/omgmu_parser/errors"
+	"github.com/vanyayudin26/omgmu_parser/model"
+	"github.com/vanyayudin26/omgmu_parser/schedule"
+	"github.com/vanyayudin26/omgmu_parser/schedule/staff"
+	"github.com/vanyayudin26/omgmu_parser/storage"
 )
 
 // TODO: переделать кэш на метку версии расписания.

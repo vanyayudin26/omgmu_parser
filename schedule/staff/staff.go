@@ -12,7 +12,7 @@ import (
 	"github.com/go-redis/redis/v8"
 	"github.com/sirupsen/logrus"
 
-	"github.com/chazari-x/hmtpk_parser/v2/storage"
+	"github.com/vanyayudin26/omgmu_parser/storage"
 )
 
 // Источники полных ФИО.

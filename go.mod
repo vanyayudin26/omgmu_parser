@@ -6,7 +6,7 @@
 //	replace github.com/chazari-x/hmtpk_parser/v2 => ../omgmu_parser
 //
 // При публикации под своим именем — сменить module и импорты (sed) и убрать replace.
-module github.com/chazari-x/hmtpk_parser/v2
+module github.com/vanyayudin26/omgmu_parser
 
 go 1.21
 

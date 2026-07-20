@@ -13,8 +13,8 @@ import (
 
 	"github.com/PuerkitoBio/goquery"
 
-	errs "github.com/chazari-x/hmtpk_parser/v2/errors"
-	"github.com/chazari-x/hmtpk_parser/v2/model"
+	errs "github.com/vanyayudin26/omgmu_parser/errors"
+	"github.com/vanyayudin26/omgmu_parser/model"
 )
 
 const (
